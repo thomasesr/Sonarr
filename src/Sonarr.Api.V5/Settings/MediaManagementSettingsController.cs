@@ -70,6 +70,21 @@ public class MediaManagementSettingsController : SettingsController<MediaManagem
         SharedValidator.RuleFor(c => c.SeasonPackUpgradeThreshold).Cascade(CascadeMode.Stop)
             .NotNull()
             .InclusiveBetween(0, 100);
+
+        SharedValidator.RuleFor(c => c.VideoFileExtensions).Custom((extensions, context) =>
+        {
+            var videoFileExtensions = extensions?.Split([','], StringSplitOptions.RemoveEmptyEntries)
+                                                            .Select(e => e.Trim(' ', '.')
+                                                            .Insert(0, "."))
+                                                            .ToList() ?? [];
+
+            var matchingArchiveExtensions = videoFileExtensions.Where(ext => FileExtensions.ArchiveExtensions.Contains(ext)).ToList();
+
+            if (matchingArchiveExtensions.Count > 0)
+            {
+                context.AddFailure($"Video file extensions may not include archive extensions: {string.Join(", ", matchingArchiveExtensions)}");
+            }
+        });
     }
 
     protected override MediaManagementSettingsResource ToResource(IConfigFileProvider configFile, IConfigService model)

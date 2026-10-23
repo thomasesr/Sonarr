@@ -204,5 +204,55 @@ namespace NzbDrone.Core.Test.Download.DownloadClientTests.TorrentClientBaseTests
             Mocker.GetMock<IBlocklistService>()
                   .Verify(s => s.Block(It.IsAny<RemoteEpisode>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never());
         }
+
+        [Test]
+        public void should_blocklist_and_throw_when_torrent_contains_no_video_file()
+        {
+            var remoteEpisode = CreateRemoteEpisode();
+            var indexer = CreateIndexerWithFailDownloads(FailDownloads.MissingVideoFile);
+
+            GivenTorrentFiles("Droned.S01E01.Pilot.1080p.WEB-DL-DRONE.nfo", "info.txt");
+
+            Assert.ThrowsAsync<ReleaseBlockedException>(async () => await Subject.Download(remoteEpisode, indexer));
+
+            Mocker.GetMock<IBlocklistService>()
+                  .Verify(s => s.Block(remoteEpisode, It.IsAny<string>(), It.IsAny<string>()), Times.Once());
+
+            ExceptionVerification.ExpectedWarns(1);
+        }
+
+        [Test]
+        public void should_blocklist_and_throw_when_torrent_contains_no_video_file_with_global_override()
+        {
+            Mocker.GetMock<IConfigService>()
+                  .SetupGet(s => s.RejectReleasesWithoutVideoFile)
+                  .Returns(true);
+
+            var remoteEpisode = CreateRemoteEpisode();
+            var indexer = CreateIndexerWithFailDownloads();
+
+            GivenTorrentFiles("Droned.S01E01.Pilot.1080p.WEB-DL-DRONE.nfo");
+
+            Assert.ThrowsAsync<ReleaseBlockedException>(async () => await Subject.Download(remoteEpisode, indexer));
+
+            Mocker.GetMock<IBlocklistService>()
+                  .Verify(s => s.Block(remoteEpisode, It.IsAny<string>(), It.IsAny<string>()), Times.Once());
+
+            ExceptionVerification.ExpectedWarns(1);
+        }
+
+        [Test]
+        public async Task should_not_blocklist_when_torrent_contains_video_file_with_missing_video_enabled()
+        {
+            var remoteEpisode = CreateRemoteEpisode();
+            var indexer = CreateIndexerWithFailDownloads(FailDownloads.MissingVideoFile);
+
+            GivenTorrentFiles("Droned.S01E01.Pilot.1080p.WEB-DL-DRONE.mkv", "Droned.S01E01.Pilot.1080p.WEB-DL-DRONE.nfo");
+
+            await Subject.Download(remoteEpisode, indexer);
+
+            Mocker.GetMock<IBlocklistService>()
+                  .Verify(s => s.Block(It.IsAny<RemoteEpisode>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never());
+        }
     }
 }

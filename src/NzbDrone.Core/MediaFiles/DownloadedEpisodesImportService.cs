@@ -366,6 +366,13 @@ namespace NzbDrone.Core.MediaFiles
                 return RejectionResult(rejection.Reason, rejection.Message);
             }
 
+            var videoFileRejection = _rejectedFileExtensionService.GetVideoFileRejection(files);
+
+            if (videoFileRejection != null)
+            {
+                return RejectionResult(videoFileRejection.Reason, videoFileRejection.Message);
+            }
+
             if (files.Any(file => FileExtensions.ArchiveExtensions.Contains(Path.GetExtension(file))))
             {
                 return RejectionResult(ImportRejectionReason.ArchiveFile, "Found archive file, might need to be extracted");

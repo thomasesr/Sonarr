@@ -10,6 +10,7 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport;
 public interface IRejectedFileExtensionService
 {
     ImportRejection GetRejection(IEnumerable<string> files);
+    ImportRejection GetVideoFileRejection(IEnumerable<string> files);
 }
 
 public class RejectedFileExtensionService : IRejectedFileExtensionService
@@ -47,6 +48,20 @@ public class RejectedFileExtensionService : IRejectedFileExtensionService
         if (rejectedExtensions.Any())
         {
             return new ImportRejection(ImportRejectionReason.UserRejectedExtension, $"Caution: Found file with user defined rejected extension: {string.Join(", ", rejectedExtensions)}");
+        }
+
+        return null;
+    }
+
+    public ImportRejection GetVideoFileRejection(IEnumerable<string> files)
+    {
+        var videoFileExtensions = FileExtensions.ParseVideoFileExtensions(_configService.VideoFileExtensions);
+
+        var hasVideoFile = files.Any(file => videoFileExtensions.Contains(Path.GetExtension(file)));
+
+        if (!hasVideoFile)
+        {
+            return new ImportRejection(ImportRejectionReason.MissingVideoFile, "No video file found in release");
         }
 
         return null;

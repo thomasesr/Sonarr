@@ -300,6 +300,11 @@ namespace NzbDrone.Core.Download
 
             if (rejection == null)
             {
+                rejection = _rejectedFileExtensionService.GetVideoFileRejection(files.Select(f => f.RelativePath));
+            }
+
+            if (rejection == null)
+            {
                 return false;
             }
 

@@ -11,5 +11,8 @@ public enum FailDownloads
     PotentiallyDangerous = 1,
 
     [FieldOption(Label = "User Defined Extensions")]
-    UserDefinedExtensions = 2
+    UserDefinedExtensions = 2,
+
+    [FieldOption(Label = "Missing Video File")]
+    MissingVideoFile = 3
 }

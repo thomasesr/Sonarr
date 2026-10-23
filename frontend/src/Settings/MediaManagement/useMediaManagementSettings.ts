@@ -18,6 +18,8 @@ export interface MediaManagementSettingsModel {
   importExtraFiles: boolean;
   extraFileExtensions: string;
   userRejectedExtensions: string;
+  videoFileExtensions: string;
+  rejectReleasesWithoutVideoFile: boolean;
   autoUnmonitorPreviouslyDownloadedEpisodes: boolean;
   downloadPropersAndRepacks: string;
   enableMediaInfo: boolean;

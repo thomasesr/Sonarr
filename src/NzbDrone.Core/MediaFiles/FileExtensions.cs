@@ -69,6 +69,13 @@ namespace NzbDrone.Core.MediaFiles
                 : ParseExtensions(input).ToHashSet(StringComparer.OrdinalIgnoreCase);
         }
 
+        public static HashSet<string> ParseVideoFileExtensions(string input)
+        {
+            return input.IsNullOrWhiteSpace()
+                ? MediaFileExtensions.Extensions
+                : ParseExtensions(input).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        }
+
         public static string RemoveFileExtension(string title)
         {
             title = FileExtensionRegex.Replace(title, m =>

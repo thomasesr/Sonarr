@@ -274,6 +274,18 @@ namespace NzbDrone.Core.Configuration
             set { SetValue("UserRejectedExtensions", value); }
         }
 
+        public string VideoFileExtensions
+        {
+            get { return GetValue("VideoFileExtensions", string.Empty); }
+            set { SetValue("VideoFileExtensions", value); }
+        }
+
+        public bool RejectReleasesWithoutVideoFile
+        {
+            get { return GetValueBoolean("RejectReleasesWithoutVideoFile", false); }
+            set { SetValue("RejectReleasesWithoutVideoFile", value); }
+        }
+
         public SeasonPackUpgradeType SeasonPackUpgrade
         {
             get { return GetValueEnum("SeasonPackUpgrade", SeasonPackUpgradeType.All); }

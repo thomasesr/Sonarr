@@ -1,5 +1,6 @@
 using System.Linq;
 using NLog;
+using NzbDrone.Core.Configuration;
 using NzbDrone.Core.Download.TrackedDownloads;
 using NzbDrone.Core.Indexers;
 using NzbDrone.Core.MediaFiles.EpisodeImport;
@@ -14,11 +15,13 @@ public interface IRejectedImportService
 public class RejectedImportService : IRejectedImportService
 {
     private readonly ICachedIndexerSettingsProvider _cachedIndexerSettingsProvider;
+    private readonly IConfigService _configService;
     private readonly Logger _logger;
 
-    public RejectedImportService(ICachedIndexerSettingsProvider cachedIndexerSettingsProvider, Logger logger)
+    public RejectedImportService(ICachedIndexerSettingsProvider cachedIndexerSettingsProvider, IConfigService configService, Logger logger)
     {
         _cachedIndexerSettingsProvider = cachedIndexerSettingsProvider;
+        _configService = configService;
         _logger = logger;
     }
 
@@ -54,6 +57,12 @@ public class RejectedImportService : IRejectedImportService
                  indexerSettings.FailDownloads.Contains(FailDownloads.UserDefinedExtensions))
         {
             _logger.Trace("Download '{0}' contains user defined rejected file extension, marking as failed", trackedDownload.DownloadItem.Title);
+            trackedDownload.Fail();
+        }
+        else if (rejectionReason == ImportRejectionReason.MissingVideoFile &&
+                 (indexerSettings.FailDownloads.Contains(FailDownloads.MissingVideoFile) || _configService.RejectReleasesWithoutVideoFile))
+        {
+            _logger.Trace("Download '{0}' contains no video file, marking as failed", trackedDownload.DownloadItem.Title);
             trackedDownload.Fail();
         }
         else

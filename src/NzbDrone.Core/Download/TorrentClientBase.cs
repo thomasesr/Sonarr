@@ -258,17 +258,18 @@ namespace NzbDrone.Core.Download
         private void EnsureTorrentDoesNotContainRejectedFiles(RemoteEpisode remoteEpisode, IIndexer indexer, byte[] torrentFile)
         {
             var indexerSettings = indexer?.Definition?.Settings as ITorrentIndexerSettings;
+            var checkForVideoFile = _configService.RejectReleasesWithoutVideoFile;
 
-            if (indexerSettings?.RejectTorrentFilesWithBlockedExtensionsWhileGrabbing != true)
+            if (indexerSettings?.RejectTorrentFilesWithBlockedExtensionsWhileGrabbing != true && !checkForVideoFile)
             {
                 return;
             }
 
-            var failDownloads = indexerSettings.FailDownloads?
+            var failDownloads = indexerSettings?.FailDownloads?
                 .Select(f => (FailDownloads)f)
-                .ToHashSet();
+                .ToHashSet() ?? new HashSet<FailDownloads>();
 
-            if (failDownloads == null || failDownloads.Count == 0)
+            if (failDownloads.Count == 0 && !checkForVideoFile)
             {
                 return;
             }
@@ -298,6 +299,12 @@ namespace NzbDrone.Core.Download
             var executableExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var userRejected = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+            var checkForVideoFile = failDownloads.Contains(FailDownloads.MissingVideoFile) || _configService.RejectReleasesWithoutVideoFile;
+            var videoFileExtensions = checkForVideoFile
+                ? FileExtensions.ParseVideoFileExtensions(_configService.VideoFileExtensions)
+                : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var hasVideoFile = false;
+
             foreach (var fileName in fileNames)
             {
                 var extension = Path.GetExtension(fileName);
@@ -305,6 +312,11 @@ namespace NzbDrone.Core.Download
                 if (extension.IsNullOrWhiteSpace())
                 {
                     continue;
+                }
+
+                if (checkForVideoFile && !hasVideoFile && videoFileExtensions.Contains(extension))
+                {
+                    hasVideoFile = true;
                 }
 
                 if (failDownloads.Contains(FailDownloads.PotentiallyDangerous) &&
@@ -338,6 +350,11 @@ namespace NzbDrone.Core.Download
             if (userRejected.Any())
             {
                 rejections.Add($"Found files with user defined rejected extensions: {string.Join(", ", userRejected)}");
+            }
+
+            if (checkForVideoFile && !hasVideoFile)
+            {
+                rejections.Add("No video file found in release");
             }
 
             if (rejections.Count == 0)

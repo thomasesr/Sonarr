@@ -43,6 +43,8 @@ namespace NzbDrone.Core.Configuration
         RescanAfterRefreshType RescanAfterRefresh { get; set; }
         EpisodeTitleRequiredType EpisodeTitleRequired { get; set; }
         string UserRejectedExtensions { get; set; }
+        string VideoFileExtensions { get; set; }
+        bool RejectReleasesWithoutVideoFile { get; set; }
 
         // Season Pack Upgrade (Media Management)
         SeasonPackUpgradeType SeasonPackUpgrade { get; set; }

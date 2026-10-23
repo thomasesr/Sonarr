@@ -449,6 +449,41 @@ function MediaManagement() {
                   />
                 </FormRow>
 
+                <FormRow
+                  advancedSettings={showAdvancedSettings}
+                  isAdvanced={true}
+                  size={sizes.MEDIUM}
+                >
+                  <FormLabel>
+                    {translate('RejectReleasesWithoutVideoFile')}
+                  </FormLabel>
+                  <FormInputHelpText
+                    text={translate('RejectReleasesWithoutVideoFileHelpText')}
+                  />
+                  <FormInput
+                    type={inputTypes.CHECK}
+                    name="rejectReleasesWithoutVideoFile"
+                    onChange={handleInputChange}
+                    {...settings.rejectReleasesWithoutVideoFile}
+                  />
+                </FormRow>
+
+                <FormRow advancedSettings={showAdvancedSettings} isAdvanced={true}>
+                  <FormLabel>{translate('VideoFileExtensions')}</FormLabel>
+                  <FormInputHelpText
+                    text={translate('VideoFileExtensionsHelpText')}
+                  />
+                  <FormInputHelpText
+                    text={translate('VideoFileExtensionsTextsExamples')}
+                  />
+                  <FormInput
+                    type={inputTypes.TEXT}
+                    name="videoFileExtensions"
+                    onChange={handleInputChange}
+                    {...settings.videoFileExtensions}
+                  />
+                </FormRow>
+
                 <FormRow size={sizes.MEDIUM}>
                   <FormLabel>
                     {translate('SeasonPackUpgradeAllowLabel')}
