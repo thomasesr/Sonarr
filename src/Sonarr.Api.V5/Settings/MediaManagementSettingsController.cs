@@ -1,5 +1,6 @@
 using FluentValidation;
 using NzbDrone.Common.EnvironmentInfo;
+using NzbDrone.Common.Extensions;
 using NzbDrone.Core.Configuration;
 using NzbDrone.Core.MediaFiles;
 using NzbDrone.Core.Validation;
@@ -73,6 +74,11 @@ public class MediaManagementSettingsController : SettingsController<MediaManagem
 
         SharedValidator.RuleFor(c => c.VideoFileExtensions).Custom((extensions, context) =>
         {
+            if (extensions.IsNullOrWhiteSpace())
+            {
+                return;
+            }
+
             var videoFileExtensions = extensions?.Split([','], StringSplitOptions.RemoveEmptyEntries)
                                                             .Select(e => e.Trim(' ', '.')
                                                             .Insert(0, "."))

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using FluentValidation;
 using NzbDrone.Common.EnvironmentInfo;
+using NzbDrone.Common.Extensions;
 using NzbDrone.Core.Configuration;
 using NzbDrone.Core.MediaFiles;
 using NzbDrone.Core.Validation;
@@ -67,6 +68,11 @@ namespace Sonarr.Api.V3.Config
 
             SharedValidator.RuleFor(c => c.VideoFileExtensions).Custom((extensions, context) =>
             {
+                if (extensions.IsNullOrWhiteSpace())
+                {
+                    return;
+                }
+
                 var videoFileExtensions = extensions.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                                                             .Select(e => e.Trim(' ', '.')
                                                             .Insert(0, "."))

@@ -301,6 +301,16 @@ namespace NzbDrone.Core.MediaFiles
                 };
             }
 
+            if (FileExtensions.ArchiveExtensions.Contains(extension))
+            {
+                return new List<ImportResult>
+                {
+                    new ImportResult(new ImportDecision(new LocalEpisode { Path = fileInfo.FullName },
+                            new ImportRejection(ImportRejectionReason.ArchiveFile, "Found archive file, might need to be extracted")),
+                        "Found archive file, might need to be extracted")
+                };
+            }
+
             if (extension.IsNullOrWhiteSpace() || !MediaFileExtensions.Extensions.Contains(extension))
             {
                 _logger.Debug("[{0}] has an unsupported extension: '{1}'", fileInfo.FullName, extension);
@@ -366,16 +376,17 @@ namespace NzbDrone.Core.MediaFiles
                 return RejectionResult(rejection.Reason, rejection.Message);
             }
 
+            // Archives are checked first, they never contain a video file directly and may still be extracted
+            if (files.Any(file => FileExtensions.ArchiveExtensions.Contains(Path.GetExtension(file))))
+            {
+                return RejectionResult(ImportRejectionReason.ArchiveFile, "Found archive file, might need to be extracted");
+            }
+
             var videoFileRejection = _rejectedFileExtensionService.GetVideoFileRejection(files);
 
             if (videoFileRejection != null)
             {
                 return RejectionResult(videoFileRejection.Reason, videoFileRejection.Message);
-            }
-
-            if (files.Any(file => FileExtensions.ArchiveExtensions.Contains(Path.GetExtension(file))))
-            {
-                return RejectionResult(ImportRejectionReason.ArchiveFile, "Found archive file, might need to be extracted");
             }
 
             return null;

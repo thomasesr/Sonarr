@@ -41,6 +41,9 @@ public class RejectedImportService : IRejectedImportService
             return true;
         }
 
+        var failMissingVideoFile = indexerSettings.FailDownloads.Contains(FailDownloads.MissingVideoFile) ||
+                                   _configService.RejectReleasesWithoutVideoFile;
+
         if (rejectionReason == ImportRejectionReason.DangerousFile &&
             indexerSettings.FailDownloads.Contains(FailDownloads.PotentiallyDangerous))
         {
@@ -59,10 +62,14 @@ public class RejectedImportService : IRejectedImportService
             _logger.Trace("Download '{0}' contains user defined rejected file extension, marking as failed", trackedDownload.DownloadItem.Title);
             trackedDownload.Fail();
         }
-        else if (rejectionReason == ImportRejectionReason.MissingVideoFile &&
-                 (indexerSettings.FailDownloads.Contains(FailDownloads.MissingVideoFile) || _configService.RejectReleasesWithoutVideoFile))
+        else if (rejectionReason == ImportRejectionReason.MissingVideoFile && failMissingVideoFile)
         {
             _logger.Trace("Download '{0}' contains no video file, marking as failed", trackedDownload.DownloadItem.Title);
+            trackedDownload.Fail();
+        }
+        else if (rejectionReason == ImportRejectionReason.UnsupportedExtension && failMissingVideoFile)
+        {
+            _logger.Trace("Download '{0}' is not a video file, marking as failed", trackedDownload.DownloadItem.Title);
             trackedDownload.Fail();
         }
         else
