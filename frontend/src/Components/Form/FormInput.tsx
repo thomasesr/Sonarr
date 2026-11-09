@@ -13,6 +13,7 @@ import FormInputHelpText from './FormInputHelpText';
 import { useFormRow } from './FormRowContext';
 import KeyValueListInput, { KeyValueListInputProps } from './KeyValueListInput';
 import NumberInput, { NumberInputProps } from './NumberInput';
+import SliderInput, { SliderInputProps } from './SliderInput';
 import OAuthInput, { OAuthInputProps } from './OAuthInput';
 import PasswordInput from './PasswordInput';
 import PathInput, { PathInputProps } from './PathInput';
@@ -84,6 +85,7 @@ const componentMap: Record<InputType, ElementType> = {
   qualityProfileSelect: QualityProfileSelectInput,
   rootFolderSelect: RootFolderSelectInput,
   seasonTypeSelect: SeasonTypeSelectInput,
+  slider: SliderInput,
   select: EnhancedSelectInput,
   seriesTag: SeriesTagInput,
   seriesTypeSelect: SeriesTypeSelectInput,
@@ -139,6 +141,8 @@ type PickProps<V, C extends InputType> = C extends 'autoComplete'
   ? RootFolderSelectInputProps
   : C extends 'seasonTypeSelect'
   ? SeasonTypeSelectInputProps
+  : C extends 'slider'
+  ? SliderInputProps
   : C extends 'select'
   ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
     EnhancedSelectInputProps<any, V>

@@ -1,9 +1,13 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using FizzWare.NBuilder;
 using FluentAssertions;
 using Moq;
 using NUnit.Framework;
+using NzbDrone.Common.Disk;
+using NzbDrone.Common.Extensions;
+using NzbDrone.Core.Configuration;
 using NzbDrone.Core.MediaFiles.EpisodeImport;
 using NzbDrone.Core.MediaFiles.MediaInfo;
 using NzbDrone.Core.Parser.Model;
@@ -41,6 +45,26 @@ namespace NzbDrone.Core.Test.MediaFiles.EpisodeImport
                                     Series = _series,
                                     Quality = new QualityModel(Quality.HDTV720p),
                                 };
+
+            Mocker.GetMock<IConfigService>()
+                  .SetupGet(s => s.SampleMinimumBytesPerSecond)
+                  .Returns(65536);
+        }
+
+        private void GivenUnknownRuntime()
+        {
+            Mocker.GetMock<IVideoFileInfoReader>()
+                  .Setup(s => s.GetRunTime(It.IsAny<string>()))
+                  .Returns((TimeSpan?)null);
+
+            _localEpisode.MediaInfo = null;
+        }
+
+        private void GivenFileSize(long bytes)
+        {
+            Mocker.GetMock<IDiskProvider>()
+                  .Setup(s => s.GetFileSize(It.IsAny<string>()))
+                  .Returns(bytes);
         }
 
         private void GivenRuntime(int seconds)
@@ -154,17 +178,45 @@ namespace NzbDrone.Core.Test.MediaFiles.EpisodeImport
         }
 
         [Test]
-        public void should_return_indeterminate_if_mediainfo_result_is_null()
+        public void should_return_sample_if_mediainfo_result_is_null_and_file_is_too_small()
         {
-            Mocker.GetMock<IVideoFileInfoReader>()
-                  .Setup(s => s.GetRunTime(It.IsAny<string>()))
-                  .Returns((TimeSpan?)null);
+            GivenUnknownRuntime();
+            GivenFileSize(1.Megabytes());
+
+            Subject.IsSample(_localEpisode.Series,
+                             _localEpisode.Path,
+                             _localEpisode.IsSpecial).Should().Be(DetectSampleResult.Sample);
+
+            ExceptionVerification.ExpectedWarns(1);
+        }
+
+        [Test]
+        public void should_return_not_sample_if_mediainfo_result_is_null_and_file_is_large_enough()
+        {
+            GivenUnknownRuntime();
+            GivenFileSize(500.Megabytes());
+
+            Subject.IsSample(_localEpisode.Series,
+                             _localEpisode.Path,
+                             _localEpisode.IsSpecial).Should().Be(DetectSampleResult.NotSample);
+
+            ExceptionVerification.ExpectedWarns(1);
+        }
+
+        [Test]
+        public void should_return_indeterminate_if_mediainfo_result_is_null_and_file_size_is_unavailable()
+        {
+            GivenUnknownRuntime();
+
+            Mocker.GetMock<IDiskProvider>()
+                  .Setup(s => s.GetFileSize(It.IsAny<string>()))
+                  .Throws(new FileNotFoundException());
 
             Subject.IsSample(_localEpisode.Series,
                              _localEpisode.Path,
                              _localEpisode.IsSpecial).Should().Be(DetectSampleResult.Indeterminate);
 
-            ExceptionVerification.ExpectedErrors(1);
+            ExceptionVerification.ExpectedWarns(1);
         }
 
         [Test]

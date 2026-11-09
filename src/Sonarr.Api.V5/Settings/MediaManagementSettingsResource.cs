@@ -34,6 +34,7 @@ public class MediaManagementSettingsResource : RestResource
     public string? UserRejectedExtensions { get; set; }
     public string? VideoFileExtensions { get; set; }
     public bool RejectReleasesWithoutVideoFile { get; set; }
+    public int SampleMinimumBytesPerSecond { get; set; }
     public SeasonPackUpgradeType SeasonPackUpgrade { get; set; }
     public double? SeasonPackUpgradeThreshold { get; set; }
 }
@@ -70,6 +71,7 @@ public static class MediaManagementConfigResourceMapper
             UserRejectedExtensions = model.UserRejectedExtensions,
             VideoFileExtensions = model.VideoFileExtensions,
             RejectReleasesWithoutVideoFile = model.RejectReleasesWithoutVideoFile,
+            SampleMinimumBytesPerSecond = model.SampleMinimumBytesPerSecond,
             SeasonPackUpgrade = model.SeasonPackUpgrade,
             SeasonPackUpgradeThreshold = model.SeasonPackUpgradeThreshold
         };

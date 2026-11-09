@@ -66,6 +66,8 @@ namespace Sonarr.Api.V3.Config
 
             SharedValidator.RuleFor(c => c.SeasonPackUpgradeThreshold).InclusiveBetween(0, 100);
 
+            SharedValidator.RuleFor(c => c.SampleMinimumBytesPerSecond).InclusiveBetween(8192, 524288);
+
             SharedValidator.RuleFor(c => c.VideoFileExtensions).Custom((extensions, context) =>
             {
                 if (extensions.IsNullOrWhiteSpace())

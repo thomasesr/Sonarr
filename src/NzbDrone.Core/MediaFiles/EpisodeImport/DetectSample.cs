@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using NLog;
+using NzbDrone.Common.Disk;
+using NzbDrone.Core.Configuration;
 using NzbDrone.Core.MediaFiles.MediaInfo;
 using NzbDrone.Core.Parser.Model;
 using NzbDrone.Core.Tv;
@@ -16,11 +18,18 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport
     public class DetectSample : IDetectSample
     {
         private readonly IVideoFileInfoReader _videoFileInfoReader;
+        private readonly IDiskProvider _diskProvider;
+        private readonly IConfigService _configService;
         private readonly Logger _logger;
 
-        public DetectSample(IVideoFileInfoReader videoFileInfoReader, Logger logger)
+        public DetectSample(IVideoFileInfoReader videoFileInfoReader,
+                            IDiskProvider diskProvider,
+                            IConfigService configService,
+                            Logger logger)
         {
             _videoFileInfoReader = videoFileInfoReader;
+            _diskProvider = diskProvider;
+            _configService = configService;
             _logger = logger;
         }
 
@@ -37,8 +46,8 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport
 
             if (!fileRuntime.HasValue)
             {
-                _logger.Error("Failed to get runtime from the file, make sure ffprobe is available");
-                return DetectSampleResult.Indeterminate;
+                _logger.Warn("Failed to get runtime from the file, make sure ffprobe is available. Falling back to file size");
+                return IsSampleBySize(path, series.Runtime);
             }
 
             return IsSample(path, fileRuntime.Value, series.Runtime);
@@ -60,16 +69,16 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport
                 runtime += episode.Runtime > 0 ? episode.Runtime : localEpisode.Series.Runtime;
             }
 
-            if (localEpisode.MediaInfo == null)
-            {
-                _logger.Error("Failed to get runtime from the file, make sure ffprobe is available");
-                return DetectSampleResult.Indeterminate;
-            }
-
             if (runtime == 0)
             {
                 _logger.Debug("Series runtime is 0, defaulting runtime to 45 minutes");
                 runtime = 45;
+            }
+
+            if (localEpisode.MediaInfo == null)
+            {
+                _logger.Warn("Failed to get runtime from the file, make sure ffprobe is available. Falling back to file size");
+                return IsSampleBySize(localEpisode.Path, runtime);
             }
 
             return IsSample(localEpisode.Path, localEpisode.MediaInfo.RunTime, runtime);
@@ -118,6 +127,46 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport
 
             _logger.Debug("[{0}] does not appear to be a sample. Runtime {1} seconds is more than minimum of {2} seconds", path, fileRuntime, minimumRuntime);
             return DetectSampleResult.NotSample;
+        }
+
+        private DetectSampleResult IsSampleBySize(string path, int expectedRuntime)
+        {
+            long fileSize;
+
+            try
+            {
+                fileSize = _diskProvider.GetFileSize(path);
+            }
+            catch (Exception e)
+            {
+                _logger.Debug(e, "[{0}] unable to read file size, unable to determine if it is a sample", path);
+                return DetectSampleResult.Indeterminate;
+            }
+
+            if (fileSize <= 0)
+            {
+                _logger.Error("[{0}] has a size of 0, is it a valid video file?", path);
+                return DetectSampleResult.Sample;
+            }
+
+            var minimumSize = GetMinimumAllowedSize(expectedRuntime);
+
+            if (fileSize < minimumSize)
+            {
+                _logger.Debug("[{0}] appears to be a sample. Size: {1} bytes. Expected at least: {2} bytes", path, fileSize, minimumSize);
+                return DetectSampleResult.Sample;
+            }
+
+            _logger.Debug("[{0}] does not appear to be a sample. Size {1} bytes is more than minimum of {2} bytes", path, fileSize, minimumSize);
+            return DetectSampleResult.NotSample;
+        }
+
+        // A full release is never smaller than its shortest plausible encode, a sample always is.
+        // The lowest bitrate a full release is expected to be encoded at turns the minimum allowed
+        // runtime into a minimum allowed file size.
+        private long GetMinimumAllowedSize(int runtime)
+        {
+            return (long)GetMinimumAllowedRuntime(runtime) * _configService.SampleMinimumBytesPerSecond;
         }
 
         private int GetMinimumAllowedRuntime(int runtime)

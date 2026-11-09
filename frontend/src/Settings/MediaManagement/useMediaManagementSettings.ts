@@ -20,6 +20,7 @@ export interface MediaManagementSettingsModel {
   userRejectedExtensions: string;
   videoFileExtensions: string;
   rejectReleasesWithoutVideoFile: boolean;
+  sampleMinimumBytesPerSecond: number;
   autoUnmonitorPreviouslyDownloadedEpisodes: boolean;
   downloadPropersAndRepacks: string;
   enableMediaInfo: boolean;

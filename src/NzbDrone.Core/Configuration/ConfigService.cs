@@ -286,6 +286,12 @@ namespace NzbDrone.Core.Configuration
             set { SetValue("RejectReleasesWithoutVideoFile", value); }
         }
 
+        public int SampleMinimumBytesPerSecond
+        {
+            get { return GetValueInt("SampleMinimumBytesPerSecond", 65536); }
+            set { SetValue("SampleMinimumBytesPerSecond", value); }
+        }
+
         public SeasonPackUpgradeType SeasonPackUpgrade
         {
             get { return GetValueEnum("SeasonPackUpgrade", SeasonPackUpgradeType.All); }

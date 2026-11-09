@@ -1,0 +1,38 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.slider {
+  flex: 1 1 auto;
+  margin: 0;
+  width: 100%;
+  height: 20px;
+  accent-color: var(--accent);
+  background-color: transparent;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+}
+
+.value {
+  flex: 0 0 auto;
+  min-width: 90px;
+  color: var(--ink);
+  text-align: right;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hasError {
+  accent-color: var(--inputErrorBorderColor);
+}
+
+.hasWarning {
+  accent-color: var(--inputWarningBorderColor);
+}

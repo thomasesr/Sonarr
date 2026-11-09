@@ -72,6 +72,8 @@ public class MediaManagementSettingsController : SettingsController<MediaManagem
             .NotNull()
             .InclusiveBetween(0, 100);
 
+        SharedValidator.RuleFor(c => c.SampleMinimumBytesPerSecond).InclusiveBetween(8192, 524288);
+
         SharedValidator.RuleFor(c => c.VideoFileExtensions).Custom((extensions, context) =>
         {
             if (extensions.IsNullOrWhiteSpace())

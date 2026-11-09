@@ -16,6 +16,7 @@ export const INDEXER_FLAGS_SELECT = 'indexerFlagsSelect';
 export const LANGUAGE_SELECT = 'languageSelect';
 export const DOWNLOAD_CLIENT_SELECT = 'downloadClientSelect';
 export const ROOT_FOLDER_SELECT = 'rootFolderSelect';
+export const SLIDER = 'slider';
 export const SELECT = 'select';
 export const SERIES_TAG = 'seriesTag';
 export const DYNAMIC_SELECT = 'dynamicSelect';
@@ -46,6 +47,7 @@ export const all = [
   DOWNLOAD_CLIENT_SELECT,
   ROOT_FOLDER_SELECT,
   LANGUAGE_SELECT,
+  SLIDER,
   SELECT,
   SERIES_TAG,
   DYNAMIC_SELECT,
@@ -79,6 +81,7 @@ export type InputType =
   | 'languageSelect'
   | 'downloadClientSelect'
   | 'rootFolderSelect'
+  | 'slider'
   | 'select'
   | 'seriesTag'
   | 'dynamicSelect'

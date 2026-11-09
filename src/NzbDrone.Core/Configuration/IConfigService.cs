@@ -45,6 +45,7 @@ namespace NzbDrone.Core.Configuration
         string UserRejectedExtensions { get; set; }
         string VideoFileExtensions { get; set; }
         bool RejectReleasesWithoutVideoFile { get; set; }
+        int SampleMinimumBytesPerSecond { get; set; }
 
         // Season Pack Upgrade (Media Management)
         SeasonPackUpgradeType SeasonPackUpgrade { get; set; }

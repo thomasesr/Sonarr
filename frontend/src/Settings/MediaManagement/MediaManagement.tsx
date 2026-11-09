@@ -19,6 +19,7 @@ import SettingsPage from 'Settings/SettingsPage';
 import { useIsWindows } from 'System/Status/useSystemStatus';
 import { InputChanged } from 'typings/inputs';
 import { SettingsStateChange } from 'typings/Settings/SettingsState';
+import formatBytes from 'Utilities/Number/formatBytes';
 import translate from 'Utilities/String/translate';
 import Naming from './Naming/Naming';
 import AddRootFolder from './RootFolder/AddRootFolder';
@@ -26,6 +27,17 @@ import {
   MediaManagementSettingsModel,
   useManageMediaManagementSettings,
 } from './useMediaManagementSettings';
+
+// Runtime in seconds of the shortest release Sonarr will accept, used to show the
+// slider's threshold as a file size rather than a raw byte rate.
+const SAMPLE_PREVIEW_SECONDS = 90;
+
+function formatSampleThreshold(bytesPerSecond: number) {
+  return translate('SampleMinimumBytesPerSecondValue', {
+    size: formatBytes(bytesPerSecond * SAMPLE_PREVIEW_SECONDS),
+    seconds: SAMPLE_PREVIEW_SECONDS,
+  });
+}
 
 const episodeTitleRequiredOptions: EnhancedSelectInputValue<string>[] = [
   {
@@ -481,6 +493,25 @@ function MediaManagement() {
                     name="videoFileExtensions"
                     onChange={handleInputChange}
                     {...settings.videoFileExtensions}
+                  />
+                </FormRow>
+
+                <FormRow advancedSettings={showAdvancedSettings} isAdvanced={true}>
+                  <FormLabel>
+                    {translate('SampleMinimumBytesPerSecond')}
+                  </FormLabel>
+                  <FormInputHelpText
+                    text={translate('SampleMinimumBytesPerSecondHelpText')}
+                  />
+                  <FormInput
+                    type={inputTypes.SLIDER}
+                    name="sampleMinimumBytesPerSecond"
+                    min={8192}
+                    max={524288}
+                    step={4096}
+                    formatValue={formatSampleThreshold}
+                    onChange={handleInputChange}
+                    {...settings.sampleMinimumBytesPerSecond}
                   />
                 </FormRow>
 
